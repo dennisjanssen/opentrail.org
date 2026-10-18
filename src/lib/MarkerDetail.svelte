@@ -1,4 +1,7 @@
 <script>
+	import WaypointBadge from './WaypointBadge.svelte';
+	import Icon from './Icon.svelte';
+	import { dialogFocus } from './dialogFocus.js';
 	import {
 		settings,
 		data,
@@ -179,7 +182,7 @@
 </script>
 
 <div
-	class="modal"
+	class="modal waypoint-detail"
 	class:modal-open={true}
 	onclick={(e) => e.target === e.currentTarget && ($detailId = -1)}
 >
@@ -190,16 +193,7 @@
 				style="top: calc(50% - 16px); left: -16px;"
 				onclick={onPrev}
 			>
-				<svg
-					width="20"
-					height="20"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"><path d="M13 18l-6-6 6-6" /></svg
-				>
+				<Icon name="chevron-left" size={20} />
 			</button>
 		{/if}
 		{#if onNext}
@@ -208,36 +202,24 @@
 				style="top: calc(50% - 16px); right: -16px;"
 				onclick={onNext}
 			>
-				<svg
-					width="20"
-					height="20"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"><path d="M11 18l6-6-6-6" /></svg
-				>
+				<Icon name="chevron-right" size={20} />
 			</button>
 		{/if}
 		<div
+			use:dialogFocus={() => ($detailId = -1)}
+			role="dialog"
+			aria-modal="true"
+			aria-label={prop.title}
+			tabindex="-1"
 			class="modal-box rounded-lg p-4 h-[90vh] select-text overflow-x-hidden overflow-y-hidden flex flex-col w-full max-w-none"
 		>
+			<div class="sheet-handle"></div>
 			<div class="flex-1 overflow-y-auto overflow-x-hidden" bind:this={scrollContainer}>
 				<div class="flex justify-between items-center mb-2">
-					<p class="text-md font-bold break-words">
-						{prop.title}
-						{#if prop.icons}
-							{#each prop.icons as icon}
-								<img
-									src={`https://cdn.opentrail.org/icons/${icon}.png`}
-									height="25"
-									width="25"
-									class="inline align-middle"
-								/>
-							{/each}
-						{/if}
-					</p>
+					<div class="detail-title">
+						<WaypointBadge kind={prop.icon} size={48} />
+						<h2>{prop.title}</h2>
+					</div>
 					<div class="flex justify-end">
 						<div class="dropdown dropdown-end">
 							<label tabindex="0" class="btn btn-sm btn-circle btn-ghost text-lg">⋮</label>
@@ -306,7 +288,8 @@
 							</ul>
 						</div>
 						<button
-							class="btn btn-sm btn-circle btn-ghost -mr-2 text-lg"
+							class="icon-button"
+							aria-label="Close waypoint details"
 							onclick={() => ($detailId = -1)}
 						>
 							✕
@@ -387,7 +370,22 @@
 						{/each}
 					</swiper-container>
 				{/if}
-				<div class="divider h-0 mb-2"></div>
+				<div class="detail-actions">
+					<button
+						class="btn btn-primary"
+						onclick={() => {
+							$skipHistorySync = true;
+							$centerOnMarkerId = dataIdx;
+							$detailId = -1;
+							goto('/app').finally(() => ($skipHistorySync = false));
+						}}><Icon name="map" /> View on map</button
+					><label class="icon-button" for="upload-photo" aria-label="Upload photo"
+						><Icon name="camera" /></label
+					>
+				</div>
+				<h3 class="detail-comments-heading">
+					Comments <span class="muted">&middot; {prop.comments.length}</span>
+				</h3>
 				{#if $settings.username}
 					<div class="form-control">
 						<div class="m-2">
@@ -402,7 +400,9 @@
 						</div>
 					</div>
 				{:else}
-					<div class="text-sm m-4">Enter a username in settings to comment</div>
+					<a class="comment-signin" href="/app/settings" onclick={() => ($detailId = -1)}
+						>Set your username in Settings to leave a comment <Icon name="chevron" size={16} /></a
+					>
 				{/if}
 				{#if newComment !== ''}
 					<div class="modal-action mt-2">
@@ -420,31 +420,37 @@
 					</div>
 				{/if}
 				{#each prop.comments as comment}
-					<div class="chat chat-start mr-2">
-						<div class="chat-header">
-							<span class="text-xs">{dayjs(comment.date).format($settings.dateFormat)}</span>
-							<span class="opacity-60">{comment.user}</span>
-						</div>
-						<div class="chat-bubble whitespace-pre-wrap break-words w-full max-w-full text-sm">
-							{comment.text}
-						</div>
-						<div class="chat-footer w-full flex justify-between">
-							<div class="opacity-60">{comment.pending ? 'Pending' : ''}</div>
-							<button
-								class="rounded-md"
-								onclick={() => flagGeneric({ text: comment.text }, 'flagComment')}
-							>
-								<svg
-									width="15"
-									height="15"
-									viewBox="0 0 24 24"
-									fill="currentColor"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									><line x1="5" y1="2" x2="5" y2="22" /><path d="M5 2h10l-2.5 4.5L15 11H5z" /></svg
+					<div class="detail-comment">
+						<span class="comment-avatar">{(comment.user || 'H').slice(0, 1).toUpperCase()}</span>
+						<div class="detail-comment-copy">
+							<div class="comment-author">
+								<span class="text-xs">{dayjs(comment.date).format($settings.dateFormat)}</span>
+								<span class="opacity-60">{comment.user}</span>
+							</div>
+							<div class="comment-text whitespace-pre-wrap break-words">
+								{comment.text}
+							</div>
+							<div class="chat-footer w-full flex justify-between">
+								<div class="opacity-60">{comment.pending ? 'Pending' : ''}</div>
+								<button
+									class="icon-button report-comment"
+									aria-label="Report comment"
+									onclick={() => flagGeneric({ text: comment.text }, 'flagComment')}
 								>
-							</button>
+									<svg
+										width="15"
+										height="15"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										><line x1="5" y1="2" x2="5" y2="22" /><path
+											d="M5 2h10l-2.5 4.5L15 11H5z"
+										/></svg
+									>
+								</button>
+							</div>
 						</div>
 					</div>
 				{/each}

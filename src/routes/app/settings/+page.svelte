@@ -1,4 +1,5 @@
 <script>
+	import Icon from '$lib/Icon.svelte';
 	import { db } from '$lib/db';
 	import { getData, syncData } from '$lib/api.js';
 	import { liveQuery } from 'dexie';
@@ -28,6 +29,25 @@
 	import { hold, unhold } from '$lib/wakeLock.js';
 	import { streamPmtiles, deleteOffline, getOPFSFileSize } from '$lib/download.js';
 
+	const groups = [
+		{ heading: 'YOUR TRAIL', keys: ['Trail', 'Direction'] },
+		{
+			heading: 'OFFLINE & SYNC',
+			keys: [
+				'Offline cache',
+				'Last sync:',
+				'Automatic sync',
+				'Pending uploads:',
+				'Install app',
+				'An update is available'
+			]
+		},
+		{
+			heading: 'PREFERENCES',
+			keys: ['Username', 'Dark mode', 'Units', 'Date format', 'Send crash reports']
+		},
+		{ heading: 'ABOUT OPENTRAIL', keys: ['Community guidelines', 'About', 'Reset app'] }
+	];
 	let syncSpinner = false;
 	let opfsSizeLabel = '';
 
@@ -100,7 +120,12 @@
 		['Reset app', '', openResetModal, false],
 		['Community guidelines', '', () => openModal({ type: 'community' }), false],
 		['About', '', () => openModal({ type: 'about' }), false]
-	];
+	].map(([left, right, callback, subfield]) => ({
+		left: String(left),
+		right,
+		callback,
+		subfield: Boolean(subfield)
+	}));
 	function openUsernameModal() {
 		openModal({
 			type: 'text',
@@ -376,26 +401,42 @@
 	}
 </script>
 
-<div class="flex flex-col w-full p-4">
-	{#each labels as [left, right, callback, subfield], i}
-		{#if !subfield && i != 0}<div class="divider h-0 my-1"></div>{/if}
-		<div
-			class="flex flex-row justify-between items-center my-2 text-md cursor-pointer"
-			onclick={() => {
-				if (typeof callback === 'function') callback();
-			}}
-		>
-			<span class={subfield && 'ml-4'}>{left}</span>
-			{#if typeof right === 'string'}
-				<span class="truncate">
-					{#if right === 'Sync' && syncSpinner}
-						<button class="btn btn-square btn-ghost btn-sm loading -my-4"></button>
-					{/if}
-					{right} >
-				</span>
-			{:else if typeof right === 'boolean'}
-				<input type="checkbox" class="toggle block" bind:checked={right} />
-			{/if}
-		</div>
+<svelte:head><title>Settings &middot; OpenTrail</title></svelte:head>
+<main class="settings-page">
+	<h1>Settings</h1>
+	{#each groups as { heading, keys }}
+		<section class="settings-section">
+			<h2>{heading}</h2>
+			<div class="settings-card">
+				{#each labels.filter( (row) => keys.some( (key) => row.left.startsWith(key) ) ) as { left, right, callback, subfield }}
+					<button
+						class="setting-row"
+						class:subfield
+						onclick={() => {
+							if (typeof callback === 'function') callback();
+						}}
+						aria-pressed={typeof right === 'boolean' ? right : undefined}
+					>
+						<span>{left}</span>
+						{#if typeof right === 'boolean'}<span
+								class="toggle"
+								class:toggle-active={right}
+								style:background-color={right ? '#0E3B32' : 'transparent'}
+								aria-hidden="true"><span></span></span
+							>
+						{:else}<span class="setting-value"
+								>{right === 'Sync' && syncSpinner ? 'Syncing...' : right}<Icon
+									name="chevron"
+									size={16}
+								/></span
+							>{/if}
+					</button>
+				{/each}
+			</div>
+		</section>
 	{/each}
-</div>
+	<footer class="settings-brand">
+		<img src="/brand/signpost-forest.svg" alt="" width="24" height="24" />OpenTrail &middot; Made
+		for the trail community
+	</footer>
+</main>
