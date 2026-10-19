@@ -1,4 +1,5 @@
 <script>
+	let installHelp = false;
 	import Icon from '$lib/Icon.svelte';
 	import { db } from '$lib/db';
 	import { getData, syncData } from '$lib/api.js';
@@ -409,28 +410,63 @@
 			<h2>{heading}</h2>
 			<div class="settings-card">
 				{#each labels.filter( (row) => keys.some( (key) => row.left.startsWith(key) ) ) as { left, right, callback, subfield }}
-					<button
-						class="setting-row"
-						class:subfield
-						onclick={() => {
-							if (typeof callback === 'function') callback();
-						}}
-						aria-pressed={typeof right === 'boolean' ? right : undefined}
-					>
-						<span>{left}</span>
-						{#if typeof right === 'boolean'}<span
-								class="toggle"
-								class:toggle-active={right}
-								style:background-color={right ? '#0E3B32' : 'transparent'}
-								aria-hidden="true"><span></span></span
-							>
-						{:else}<span class="setting-value"
-								>{right === 'Sync' && syncSpinner ? 'Syncing...' : right}<Icon
-									name="chevron"
-									size={16}
-								/></span
-							>{/if}
-					</button>
+					{#if left === 'Direction'}
+						<div class="direction-setting">
+							<span id="travel-direction">Direction of travel</span>
+							<div class="direction-options" role="group" aria-labelledby="travel-direction">
+								<button
+									aria-pressed={!$settings.reverseMiles}
+									onclick={() => {
+										$settings.reverseMiles = false;
+									}}>Northbound</button
+								>
+								<button
+									aria-pressed={$settings.reverseMiles}
+									onclick={() => {
+										$settings.reverseMiles = true;
+									}}>Southbound</button
+								>
+							</div>
+						</div>
+					{:else if left === 'Install app'}
+						<button
+							aria-expanded={$deferredPrompt ? undefined : installHelp}
+							class="setting-row install-setting"
+							onclick={() => {
+								if ($deferredPrompt) promptInstall();
+								else installHelp = !installHelp;
+							}}
+						>
+							<span class="install-symbol"><Icon name="download" size={20} /></span>
+							<span class="install-copy"
+								><strong>Install app</strong><span>For offline maps and all features</span></span
+							><Icon name="chevron" size={20} />
+						</button>
+						{#if installHelp}<p class="settings-install-help" role="status">{right}</p>{/if}
+					{:else}
+						<button
+							class="setting-row"
+							class:subfield
+							onclick={() => {
+								if (typeof callback === 'function') callback();
+							}}
+							aria-pressed={typeof right === 'boolean' ? right : undefined}
+						>
+							<span>{left}</span>
+							{#if typeof right === 'boolean'}<span
+									class="toggle"
+									class:toggle-active={right}
+									style:background-color={right ? '#0E3B32' : 'transparent'}
+									aria-hidden="true"><span></span></span
+								>
+							{:else}<span class="setting-value"
+									>{right === 'Sync' && syncSpinner ? 'Syncing...' : right}<Icon
+										name="chevron"
+										size={16}
+									/></span
+								>{/if}
+						</button>
+					{/if}
 				{/each}
 			</div>
 		</section>

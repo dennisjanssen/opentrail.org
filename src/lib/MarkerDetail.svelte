@@ -1,5 +1,6 @@
 <script>
 	import WaypointBadge from './WaypointBadge.svelte';
+	import { waypointKinds } from './waypoint-icons.js';
 	import Icon from './Icon.svelte';
 	import { dialogFocus } from './dialogFocus.js';
 	import {
@@ -213,109 +214,112 @@
 			tabindex="-1"
 			class="modal-box rounded-lg p-4 h-[90vh] select-text overflow-x-hidden overflow-y-hidden flex flex-col w-full max-w-none"
 		>
-			<div class="sheet-handle"></div>
-			<div class="flex-1 overflow-y-auto overflow-x-hidden" bind:this={scrollContainer}>
-				<div class="flex justify-between items-center mb-2">
-					<div class="detail-title">
-						<WaypointBadge kind={prop.icon} size={48} />
-						<h2>{prop.title}</h2>
-					</div>
-					<div class="flex justify-end">
-						<div class="dropdown dropdown-end">
-							<label tabindex="0" class="btn btn-sm btn-circle btn-ghost text-lg">⋮</label>
-							<ul
-								tabindex="0"
-								class="menu dropdown-content p-2 shadow bg-base-300 rounded-box whitespace-nowrap"
-							>
-								<li
-									onclick={() => {
-										const url = `${window.location.origin}/app?trail=${$settings.trail}&marker=${prop.dbid}`;
-										navigator.clipboard.writeText(url);
-									}}
-								>
-									<a>Copy share link</a>
-								</li>
-								<li
-									onclick={() => {
-										const c = $data.features[dataIdx].geometry.coordinates;
-										window.open(
-											`https://www.google.com/maps/search/?api=1&query=${c[1]},${c[0]}`,
-											'_blank'
-										);
-									}}
-								>
-									<a>Open in Google Maps</a>
-								</li>
-								{#if $page.url.pathname === '/app/list'}
-									<li
-										onclick={() => {
-											$skipHistorySync = true;
-											$centerOnMarkerId = dataIdx;
-											$detailId = -1;
-											goto('/app').finally(() => {
-												$skipHistorySync = false;
-											});
-										}}
-									>
-										<a>Show on map</a>
-									</li>
-								{/if}
-								<li>
-									<a>
-										<label for="upload-photo">Upload image</label>
-										<!-- <input type="file" name="photo" id="upload-photo" /> -->
-										<input
-											style="display:none;"
-											type="file"
-											accept="image/*"
-											id="upload-photo"
-											onchange={uploadImage}
-										/>
-									</a>
-								</li>
-								<li onclick={() => editTitle(prop)}><a>Edit title</a></li>
-								<li onclick={() => editDescription(prop)}><a>Edit description</a></li>
-								<li
-									onclick={() => {
-										$editLocId = dataIdx;
-										$editLocNewMarker = false;
-									}}
-								>
-									<a>Edit location</a>
-								</li>
-								<li onclick={() => editIcons(prop)}><a>Edit icons</a></li>
-								<li onclick={() => flagGeneric({}, 'flagMarker')}><a>Delete marker</a></li>
-							</ul>
-						</div>
-						<button
-							class="icon-button"
-							aria-label="Close waypoint details"
-							onclick={() => ($detailId = -1)}
+			<div class="detail-toolbar">
+				<div class="sheet-handle" aria-hidden="true"></div>
+				<div class="flex justify-end">
+					<div class="dropdown dropdown-end">
+						<button type="button" aria-label="More waypoint options" class="icon-button detail-more"
+							><Icon name="more-vertical" /></button
 						>
-							✕
-						</button>
+						<ul
+							tabindex="0"
+							class="menu dropdown-content p-2 shadow bg-base-300 rounded-box whitespace-nowrap"
+						>
+							<li
+								onclick={() => {
+									const url = `${window.location.origin}/app?trail=${$settings.trail}&marker=${prop.dbid}`;
+									navigator.clipboard.writeText(url);
+								}}
+							>
+								<a>Copy share link</a>
+							</li>
+							<li
+								onclick={() => {
+									const c = $data.features[dataIdx].geometry.coordinates;
+									window.open(
+										`https://www.google.com/maps/search/?api=1&query=${c[1]},${c[0]}`,
+										'_blank'
+									);
+								}}
+							>
+								<a>Open in Google Maps</a>
+							</li>
+							{#if $page.url.pathname === '/app/list'}
+								<li
+									onclick={() => {
+										$skipHistorySync = true;
+										$centerOnMarkerId = dataIdx;
+										$detailId = -1;
+										goto('/app').finally(() => {
+											$skipHistorySync = false;
+										});
+									}}
+								>
+									<a>Show on map</a>
+								</li>
+							{/if}
+							<li>
+								<a>
+									<label for="upload-photo">Upload image</label>
+									<!-- <input type="file" name="photo" id="upload-photo" /> -->
+									<input
+										style="display:none;"
+										type="file"
+										accept="image/*"
+										id="upload-photo"
+										onchange={uploadImage}
+									/>
+								</a>
+							</li>
+							<li onclick={() => editTitle(prop)}><a>Edit title</a></li>
+							<li onclick={() => editDescription(prop)}><a>Edit description</a></li>
+							<li
+								onclick={() => {
+									$editLocId = dataIdx;
+									$editLocNewMarker = false;
+								}}
+							>
+								<a>Edit location</a>
+							</li>
+							<li onclick={() => editIcons(prop)}><a>Edit icons</a></li>
+							<li onclick={() => flagGeneric({}, 'flagMarker')}><a>Delete marker</a></li>
+						</ul>
+					</div>
+					<button
+						class="icon-button"
+						aria-label="Close waypoint details"
+						onclick={() => ($detailId = -1)}><Icon name="close" size={20} /></button
+					>
+				</div>
+			</div>
+
+			<div
+				class="detail-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+				bind:this={scrollContainer}
+			>
+				<div class="detail-title">
+					<WaypointBadge kind={prop.icon} size={52} />
+					<div class="detail-heading-copy">
+						<h2>{prop.title}</h2>
+						<p class="detail-meta">
+							{(waypointKinds[prop.icon] || waypointKinds.o).label.split(' / ')[0]} &middot; {#if imp}Mile
+								{displayMile.toFixed(
+									1
+								)}{#if userRecent}&nbsp;({mileSign}{mileDiff}){/if}{:else}{formatDist(
+									displayMile,
+									false,
+									1
+								)}{#if userRecent}&nbsp;({mileSign}{formatDist(mileDiff, false, 1)}){/if}{/if} &middot;
+							{#if imp}{prop.elev?.toLocaleString('en-US')} ft{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{elevDiffFt}'){/if}{:else}
+								{formatElev(
+									prop.elev != null ? ftToM(prop.elev) : null,
+									false
+								)}{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{Math.round(
+										ftToM(elevDiffFt)
+									)}m){/if}{/if}
+						</p>
 					</div>
 				</div>
-				<p class="text-sm italic">
-					{#if imp}Mile {displayMile.toFixed(
-							1
-						)}{#if userRecent}&nbsp;({mileSign}{mileDiff}){/if}{:else}{formatDist(
-							displayMile,
-							false,
-							1
-						)}{#if userRecent}&nbsp;({mileSign}{formatDist(
-								mileDiff,
-								false,
-								1
-							)}){/if}{/if}&nbsp;&nbsp;&nbsp;{#if imp}Elev {prop.elev?.toLocaleString(
-							'en-US'
-						)}'{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{elevDiffFt}'){/if}{:else}Elev {formatElev(
-							prop.elev != null ? ftToM(prop.elev) : null,
-							false
-						)}{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{Math.round(
-								ftToM(elevDiffFt)
-							)}m){/if}{/if}
-				</p>
 				<p class="text-sm whitespace-pre-wrap break-words my-2">
 					{#each parseDescURL(prop.desc) as token}
 						{#if token.startsWith('http://') || token.startsWith('https://')}

@@ -130,6 +130,17 @@ mark {
 	max-height: calc(100dvh - 24px);
 	box-shadow: 0 16px 60px #0e3b3226;
 }
+/* Keep desktop dialogs scrollable without visible scrollbar tracks. */
+@media (min-width: 768px) {
+	.modal-box,
+	.modal-box * {
+		scrollbar-width: none;
+	}
+	.modal-box::-webkit-scrollbar,
+	.modal-box *::-webkit-scrollbar {
+		display: none;
+	}
+}
 .sheet-handle {
 	height: 4px;
 	width: 40px;
@@ -1135,18 +1146,8 @@ mark {
 		box-shadow: 0 8px 28px #0e3b3226;
 	}
 	.app-shell swiper-container .selected-waypoint-card {
-		padding: 56px 20px 16px;
+		padding: 16px 20px;
 		box-shadow: none;
-	}
-	.selected-waypoint-card .selected-prev,
-	.selected-waypoint-card .selected-next {
-		top: 12px !important;
-		left: 16px !important;
-		right: auto !important;
-		box-shadow: none;
-	}
-	.selected-waypoint-card .selected-next {
-		left: 56px !important;
 	}
 	.app-shell .elevation-profile-overlay {
 		position: absolute;
@@ -1272,10 +1273,54 @@ mark {
 	display: flex;
 	align-items: center;
 	gap: 14px;
-	padding: 12px 0;
+	padding: 0 0 12px;
 }
 .detail-title h2 {
 	font-size: 22px;
+	line-height: 27px;
+	font-weight: 800;
+	margin: 0;
+}
+.waypoint-detail .modal-box {
+	padding-top: 8px;
+}
+.detail-toolbar {
+	position: relative;
+	display: flex;
+	justify-content: flex-end;
+	flex-shrink: 0;
+	min-height: 48px;
+	margin: 0 -8px 4px;
+	z-index: 2;
+}
+.detail-toolbar .sheet-handle {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	margin: 0;
+}
+.detail-toolbar .icon-button {
+	border-radius: 50%;
+}
+.detail-toolbar .detail-more {
+	background: transparent;
+}
+.detail-toolbar .dropdown-content {
+	max-height: min(440px, 65dvh);
+	overflow-y: auto;
+}
+.detail-heading-copy {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	overflow-wrap: anywhere;
+}
+.detail-meta {
+	font-size: 14px;
+	line-height: 20px;
+	color: var(--muted);
 }
 .detail-actions {
 	display: flex;
@@ -1438,4 +1483,258 @@ mark {
 .segmented button:active,
 .type-grid button:active {
 	background: var(--selected);
+}
+
+/* Shared map control geometry and foreground, matching the zoom stack. */
+.app-shell .maplibregl-ctrl-group,
+.app-shell .filter-funnel-btn,
+.app-shell .profile-toggle,
+.app-shell button[title='Ruler'] {
+	border-radius: 16px !important;
+	background: hsl(var(--b1));
+	color: var(--forest);
+	border: 0;
+	box-shadow: 0 3px 12px #0e3b3220;
+}
+.app-shell .filter-funnel-btn,
+.app-shell .profile-toggle,
+.app-shell button[title='Ruler'] {
+	width: 44px;
+	height: 44px;
+	min-height: 44px;
+	padding: 0;
+}
+.app-shell .filter-funnel-btn[aria-expanded='true'],
+.app-shell .ruler-btn-active {
+	background: var(--selected);
+}
+.map-filter {
+	align-items: flex-end;
+}
+.map-filter-panel {
+	position: absolute;
+	right: 56px;
+	top: 0;
+	width: min(280px, calc(100vw - 88px));
+	max-height: calc(100dvh - 350px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 12px;
+	border: 1px solid var(--line);
+	border-radius: 18px;
+	background: hsl(var(--b1));
+	color: var(--forest);
+	box-shadow: 0 8px 28px #0e3b3226;
+}
+.map-filter-panel header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+.map-filter-panel header .icon-button {
+	width: 32px;
+	height: 32px;
+	border-radius: 10px;
+}
+.map-filter-option {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 44px;
+	padding: 6px;
+	font-size: 14px;
+	cursor: pointer;
+	border-radius: 10px;
+}
+.map-filter-option input {
+	flex-shrink: 0;
+}
+.map-filter-option:hover {
+	background: var(--tint);
+}
+.filter-all {
+	border-bottom: 1px solid var(--line);
+	border-radius: 0;
+	margin-bottom: 4px;
+	font-weight: 700;
+}
+.selected-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 10px;
+	flex-shrink: 0;
+}
+.selected-actions .selected-arrow {
+	width: 48px;
+	height: 48px;
+	min-height: 48px;
+	padding: 0;
+	flex: none;
+	background: hsl(var(--b1));
+	color: var(--forest);
+	border: 1px solid var(--line);
+	border-radius: 14px;
+}
+.selected-actions .selected-details {
+	flex: 1;
+	min-width: 0;
+	height: 48px;
+	padding: 8px;
+}
+.selected-actions .selected-arrow:not(:disabled):hover {
+	background: var(--selected);
+}
+.app-shell .selected-waypoint-card {
+	padding-right: 16px;
+}
+.selected-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding-right: 32px;
+	margin-bottom: 6px;
+}
+.selected-heading-copy {
+	min-width: 0;
+	flex: 1;
+}
+.selected-title {
+	font-size: 14px;
+	line-height: 18px;
+	font-weight: 800;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+}
+.selected-meta {
+	font-size: 12px;
+	line-height: 17px;
+	margin-top: 2px;
+}
+.direction-setting {
+	padding: 12px 16px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	font-weight: 600;
+}
+.direction-options {
+	padding: 4px;
+	border-radius: 12px;
+	background: var(--tint);
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 4px;
+}
+.direction-options button {
+	min-height: 36px;
+	border-radius: 9px;
+	font-size: 14px;
+	color: var(--muted);
+}
+.direction-options button[aria-pressed='true'] {
+	background: hsl(var(--b1));
+	color: var(--forest);
+	font-weight: 700;
+	box-shadow: 0 1px 3px #0e3b321f;
+}
+.direction-options button:hover {
+	color: var(--forest);
+}
+.install-setting {
+	min-height: 68px;
+	gap: 12px;
+}
+.install-symbol {
+	display: grid;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	flex: none;
+	border-radius: 10px;
+	background: #ffd24c;
+	color: #0e3b32;
+}
+.install-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+}
+.install-copy strong {
+	font-size: 16px;
+	font-weight: 600;
+}
+.install-copy > span,
+.settings-install-help {
+	font-size: 13px;
+	color: var(--muted);
+}
+.settings-install-help {
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--line);
+}
+@media (min-width: 768px) {
+	.map-filter-panel {
+		max-height: calc(100dvh - 220px);
+	}
+}
+
+/* One right-aligned control stack below the map header on every screen. */
+	.app-shell .maplibregl-ctrl-top-right {
+		top: 80px;
+		bottom: auto;
+		right: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+	.app-shell .maplibregl-ctrl-top-right .maplibregl-ctrl {
+		margin: 0;
+	}
+	.app-shell .map-filter {
+		top: 232px;
+		right: 16px;
+	}
+	.app-shell button[title='Ruler'],
+	.app-shell.profile-open button[title='Ruler'] {
+		top: 286px;
+		bottom: auto !important;
+		left: auto;
+		right: 16px;
+	}
+@media (max-width: 767px) {
+	.app-shell .profile-toggle {
+		top: auto;
+		bottom: 8px !important;
+		left: auto;
+		right: 16px;
+	}
+	.app-shell:has(.selected-waypoint-card) .profile-toggle {
+		bottom: 198px !important;
+	}
+	.app-shell.profile-open .profile-toggle {
+		bottom: calc(25% + 8px) !important;
+	}
+	.app-shell.profile-open:has(.selected-waypoint-card) .profile-toggle {
+		bottom: calc(25% + 198px) !important;
+	}
+	.app-shell .map-filter-panel {
+		max-height: calc(100dvh - 340px);
+	}
+}
+@media (min-width: 768px) {
+	.app-shell .profile-toggle {
+		top: auto;
+		bottom: 100px !important;
+		left: auto;
+		right: 16px;
+	}
+	.app-shell .map-filter-panel {
+		max-height: calc(100dvh - 340px);
+	}
 }

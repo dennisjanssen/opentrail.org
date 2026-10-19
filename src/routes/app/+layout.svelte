@@ -602,15 +602,13 @@
 		return data;
 	}
 	let filtersVisible = false;
-	let lastToggleAllIcons = true;
 	function toggleIconLayer(i) {
 		$activeIcons[i] = !$activeIcons[i];
 		$activeIcons = $activeIcons;
 		updateMarkerFilter();
 	}
 	function toggleAllIcons() {
-		lastToggleAllIcons = !lastToggleAllIcons;
-		$activeIcons = $activeIcons.fill(lastToggleAllIcons);
+		$activeIcons = $activeIcons.map(() => !$activeIcons.every(Boolean));
 		updateMarkerFilter();
 	}
 	function toggleFilters() {
@@ -1423,9 +1421,7 @@
 			<!-- filter funnel + collapsible filter icons -->
 			<div class="map-filter absolute flex flex-col items-stretch">
 				<button
-					class="btn btn-circle btn-sm bg-white focus:bg-white active:bg-white border-opacity-50 filter-funnel-btn"
-					class:filter-funnel-open={filtersVisible}
-					class:filter-funnel-active={filtersVisible}
+					class="btn filter-funnel-btn"
 					aria-label="Filter waypoint types"
 					aria-expanded={filtersVisible}
 					onclick={toggleFilters}
@@ -1433,28 +1429,35 @@
 					<Icon name="filter" />
 				</button>
 				{#if filtersVisible}
-					<div in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
-						<div class="btn-group btn-group-vertical filter-bar-inner">
-							<button
-								class="btn btn-circle btn-sm bg-white focus:bg-white active:bg-white border-opacity-50"
-								aria-label="Toggle all waypoint types"
-								onclick={toggleAllIcons}
+					<section class="map-filter-panel" aria-label="Waypoint filters">
+						<header>
+							<strong>Waypoint types</strong><button
+								class="icon-button"
+								aria-label="Close filters"
+								onclick={toggleFilters}><Icon name="close" size={18} /></button
 							>
-								<Icon name="check" />
-							</button>
-							{#each ICONS as icon, i}
-								<button
-									class="btn btn-circle btn-sm bg-white focus:bg-white active:bg-white border-opacity-50"
-									class:opacity-40={!$activeIcons[i]}
+						</header>
+						<label class="map-filter-option filter-all"
+							><input
+								type="checkbox"
+								class="checkbox checkbox-sm"
+								checked={$activeIcons.every(Boolean)}
+								onchange={toggleAllIcons}
+							/><span>All waypoint types</span></label
+						>
+						{#each ICONS as icon, i}
+							<label class="map-filter-option"
+								><input
+									type="checkbox"
+									class="checkbox checkbox-sm"
+									checked={$activeIcons[i]}
 									aria-label={waypointKinds[icon].label}
-									aria-pressed={$activeIcons[i]}
-									onclick={() => toggleIconLayer(i)}
-								>
-									<WaypointBadge kind={icon} size={28} />
-								</button>
-							{/each}
-						</div>
-					</div>
+									onchange={() => toggleIconLayer(i)}
+								/><WaypointBadge kind={icon} size={28} /><span>{waypointKinds[icon].label}</span
+								></label
+							>
+						{/each}
+					</section>
 				{/if}
 			</div>
 			<!-- profile toggle button -->
@@ -1635,30 +1638,6 @@
 		border-top: 1px solid #ddd;
 		z-index: 1;
 		overflow: hidden;
-	}
-	.filter-funnel-btn {
-		z-index: 2;
-		border-radius: 6px;
-	}
-	.filter-funnel-open {
-		border-radius: 6px 6px 0 0;
-		border-bottom: none;
-		margin-bottom: 1px;
-	}
-	.filter-funnel-active svg {
-		stroke: #3b82f6;
-	}
-	.ruler-btn-active svg {
-		stroke: #3b82f6;
-		fill: #3b82f6;
-	}
-	.filter-bar-inner .btn:first-child {
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-	}
-	.filter-bar-inner .btn:last-child {
-		border-bottom-left-radius: 6px;
-		border-bottom-right-radius: 6px;
 	}
 	.retry-btn {
 		font-size: 11px;

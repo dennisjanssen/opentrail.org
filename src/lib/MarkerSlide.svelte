@@ -45,36 +45,17 @@
 </script>
 
 <swiper-slide virtualIndex={index} style={`left: ${offset}px`}>
-	<div class="block h-full cursor-pointer" onclick={() => ($detailId = $data.features[index]?.id)}>
+	<div
+		class="block h-full cursor-pointer"
+		onclick={(event) => {
+			// Disabled buttons may pass pointer events to their containing action row.
+			if (event.target instanceof Element && event.target.closest('.selected-actions')) return;
+			$detailId = $data.features[index]?.id;
+		}}
+	>
 		<div
 			class="selected-waypoint-card bg-base-100 rounded-lg pt-2 pb-2 p-4 w-full h-full select-text relative overflow-visible flex flex-col"
 		>
-			{#if onPrev}
-				<button
-					class="selected-prev btn btn-circle btn-sm bg-base-100 border border-base-300 shadow-md text-base-content absolute z-10"
-					aria-label="Previous waypoint"
-					style="top: calc(50% - 16px); left: -16px;"
-					onclick={(e) => {
-						e.stopPropagation();
-						onPrev();
-					}}
-				>
-					<Icon name="chevron-left" size={20} />
-				</button>
-			{/if}
-			{#if onNext}
-				<button
-					class="selected-next btn btn-circle btn-sm bg-base-100 border border-base-300 shadow-md text-base-content absolute z-10"
-					aria-label="Next waypoint"
-					style="top: calc(50% - 16px); right: -16px;"
-					onclick={(e) => {
-						e.stopPropagation();
-						onNext();
-					}}
-				>
-					<Icon name="chevron-right" size={20} />
-				</button>
-			{/if}
 			<button
 				class="selected-close icon-button"
 				aria-label="Close selected waypoint"
@@ -84,6 +65,33 @@
 				}}><Icon name="close" size={18} /></button
 			>
 			<div class="flex-1 min-h-0 overflow-hidden">
+				<div class="selected-header">
+					<WaypointBadge kind={prop.icon} size={40} />
+					<div class="selected-heading-copy">
+						<p class="selected-title">{prop.title}</p>
+						<p class="selected-meta muted">
+							{#if imp}Mile {displayMile.toFixed(
+									1
+								)}{#if userRecent}&nbsp;({mileSign}{mileDiff}){/if}{:else}{formatDist(
+									displayMile,
+									false,
+									1
+								)}{#if userRecent}&nbsp;({mileSign}{formatDist(
+										mileDiff,
+										false,
+										1
+									)}){/if}{/if}&nbsp;&nbsp;&nbsp;{#if imp}Elev {prop.elev?.toLocaleString(
+									'en-US'
+								)}'{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{elevDiffFt}'){/if}{:else}Elev
+								{formatElev(
+									prop.elev != null ? ftToM(prop.elev) : null,
+									false
+								)}{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{Math.round(
+										ftToM(elevDiffFt)
+									)}m){/if}{/if}
+						</p>
+					</div>
+				</div>
 				{#if prop.images.length > 0}
 					<div class="indicator float-right rounded-lg m-1">
 						{#if prop.images.length > 1}
@@ -100,30 +108,6 @@
 						/>
 					</div>
 				{/if}
-				<p class="text-sm font-bold truncate">
-					<WaypointBadge kind={prop.icon} size={30} />
-					{prop.title}
-				</p>
-				<p class="text-sm muted">
-					{#if imp}Mile {displayMile.toFixed(
-							1
-						)}{#if userRecent}&nbsp;({mileSign}{mileDiff}){/if}{:else}{formatDist(
-							displayMile,
-							false,
-							1
-						)}{#if userRecent}&nbsp;({mileSign}{formatDist(
-								mileDiff,
-								false,
-								1
-							)}){/if}{/if}&nbsp;&nbsp;&nbsp;{#if imp}Elev {prop.elev?.toLocaleString(
-							'en-US'
-						)}'{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{elevDiffFt}'){/if}{:else}Elev {formatElev(
-							prop.elev != null ? ftToM(prop.elev) : null,
-							false
-						)}{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{Math.round(
-								ftToM(elevDiffFt)
-							)}m){/if}{/if}
-				</p>
 				<p class="text-sm whitespace-pre-wrap break-words">
 					{#each parseDescURL(prop.desc) as token}
 						{#if token.startsWith('http://') || token.startsWith('https://')}
@@ -138,13 +122,34 @@
 					{/each}
 				</p>
 			</div>
-			<button
-				class="btn btn-primary mt-2 w-full"
-				onclick={(e) => {
-					e.stopPropagation();
-					$detailId = $data.features[index]?.id;
-				}}>View details</button
-			>
+			<div class="selected-actions">
+				<button
+					class="btn selected-arrow"
+					aria-label="Previous waypoint"
+					disabled={!onPrev}
+					onclick={(e) => {
+						e.stopPropagation();
+						onPrev?.();
+					}}><Icon name="chevron-left" size={20} /></button
+				>
+				<button
+					class="btn btn-primary selected-details"
+					onclick={(e) => {
+						e.stopPropagation();
+						$detailId = $data.features[index]?.id;
+					}}>View details</button
+				>
+
+				<button
+					class="btn selected-arrow"
+					aria-label="Next waypoint"
+					disabled={!onNext}
+					onclick={(e) => {
+						e.stopPropagation();
+						onNext?.();
+					}}><Icon name="chevron-right" size={20} /></button
+				>
+			</div>
 			{#if commentCount > 0}
 				<div class="flex items-center gap-1.5 text-xs mt-1 shrink-0">
 					<Icon name="comment" size={20} /><span>{commentCount}</span>
