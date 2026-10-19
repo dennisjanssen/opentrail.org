@@ -2,15 +2,7 @@
 	import Icon from '$lib/Icon.svelte';
 	import WaypointBadge from '$lib/WaypointBadge.svelte';
 	import { data, settings, trailRoute, userMiles, detailId } from '$lib/store.js';
-	import {
-		parseDescURL,
-		isSafeURL,
-		mToFt,
-		ftToM,
-		formatDist,
-		formatElev,
-		timeAgo
-	} from '$lib/helpers.js';
+	import { parseDescURL, isSafeURL, mToFt, ftToM, formatDist, formatElev } from '$lib/helpers.js';
 	export let index;
 	export let offset;
 	export let onPrev;
@@ -41,12 +33,11 @@
 		userElevFt != null && prop.elev != null ? (Number(prop.elev) >= userElevFt ? '+' : '-') : '';
 	$: userRecent = new Date() - $userMiles.date < 1000000;
 	$: commentCount = prop.comments?.length ?? 0;
-	$: latestComment = commentCount > 0 ? prop.comments[0] : null;
 </script>
 
 <swiper-slide virtualIndex={index} style={`left: ${offset}px`}>
 	<div
-		class="block h-full cursor-pointer"
+		class="block cursor-pointer"
 		onclick={(event) => {
 			// Disabled buttons may pass pointer events to their containing action row.
 			if (event.target instanceof Element && event.target.closest('.selected-actions')) return;
@@ -54,17 +45,9 @@
 		}}
 	>
 		<div
-			class="selected-waypoint-card bg-base-100 rounded-lg pt-2 pb-2 p-4 w-full h-full select-text relative overflow-visible flex flex-col"
+			class="selected-waypoint-card bg-base-100 rounded-lg pt-2 pb-2 p-4 w-full select-text relative overflow-visible flex flex-col"
 		>
-			<button
-				class="selected-close icon-button"
-				aria-label="Close selected waypoint"
-				onclick={(e) => {
-					e.stopPropagation();
-					onClose();
-				}}><Icon name="close" size={18} /></button
-			>
-			<div class="flex-1 min-h-0 overflow-hidden">
+			<div class="selected-content">
 				<div class="selected-header">
 					<WaypointBadge kind={prop.icon} size={40} />
 					<div class="selected-heading-copy">
@@ -91,6 +74,24 @@
 									)}m){/if}{/if}
 						</p>
 					</div>
+					<div class="selected-header-actions">
+						{#if commentCount > 0}<button
+								class="selected-comments"
+								aria-label={commentCount + (commentCount === 1 ? ' comment' : ' comments')}
+								onclick={(event) => {
+									event.stopPropagation();
+									$detailId = $data.features[index]?.id;
+								}}><Icon name="comment" size={16} /><span>{commentCount}</span></button
+							>{/if}
+						<button
+							class="selected-close icon-button"
+							aria-label="Close selected waypoint"
+							onclick={(e) => {
+								e.stopPropagation();
+								onClose();
+							}}><Icon name="close" size={18} /></button
+						>
+					</div>
 				</div>
 				{#if prop.images.length > 0}
 					<div class="indicator float-right rounded-lg m-1">
@@ -108,7 +109,7 @@
 						/>
 					</div>
 				{/if}
-				<p class="text-sm whitespace-pre-wrap break-words">
+				<p class="selected-description text-sm whitespace-pre-wrap break-words">
 					{#each parseDescURL(prop.desc) as token}
 						{#if token.startsWith('http://') || token.startsWith('https://')}
 							{#if isSafeURL(token)}
@@ -150,12 +151,6 @@
 					}}><Icon name="chevron-right" size={20} /></button
 				>
 			</div>
-			{#if commentCount > 0}
-				<div class="flex items-center gap-1.5 text-xs mt-1 shrink-0">
-					<Icon name="comment" size={20} /><span>{commentCount}</span>
-					<span>{timeAgo(latestComment.date)}</span>
-				</div>
-			{/if}
 		</div>
 	</div>
 </swiper-slide>

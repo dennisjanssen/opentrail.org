@@ -1155,6 +1155,15 @@
 							})
 						);
 					}
+					requestAnimationFrame(() => {
+						if (!swiperEl) return;
+						const cards = swiperEl.querySelectorAll('.selected-waypoint-card');
+						const height = Math.max(
+							0,
+							...Array.from(cards, (card) => card.getBoundingClientRect().height)
+						);
+						if (height) swiperEl.style.height = height + 'px';
+					});
 				}
 			}
 		};
@@ -1481,7 +1490,7 @@
 			<!-- swiper or new marker button -->
 			{#if $selectedMarkerId !== -1}
 				<swiper-container
-					class="absolute w-full h-40"
+					class="marker-previews absolute w-full"
 					style="bottom: {$elevationProfileVisible
 						? 'calc(25% + 8px)'
 						: '8px'}; z-index: 2; visibility: {$detailId === -1 && showSwiper
