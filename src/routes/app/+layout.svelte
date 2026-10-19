@@ -1370,7 +1370,7 @@
 		><a href="/app/settings" class="trail-switch"
 			><strong>{trailNames[$settings.trail] || 'Choose a trail'}</strong><span
 				>{$settings.reverseMiles ? 'Southbound' : 'Northbound'}</span
-			><span aria-hidden="true">&#8964;</span></a
+			><Icon name="chevron-down" size={18} /></a
 		>
 	</header>
 	<!-- loading indicator -->

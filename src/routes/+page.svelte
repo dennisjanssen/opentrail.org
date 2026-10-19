@@ -10,14 +10,14 @@
 	} from '$lib/store.js';
 	import { onMount } from 'svelte';
 	import Icon from '$lib/Icon.svelte';
-	import WaypointBadge from '$lib/WaypointBadge.svelte';
+	import WelcomeIllustration from '$lib/WelcomeIllustration.svelte';
 	let showTrails = $isInstalled || !!$settings.trail;
 	let installHelp = false;
 	let feature = 0;
 	const features = [
+		'Helps you navigate the trail',
 		'Easily find points of interest along your route',
-		'Your trail, even when you are offline',
-		'Fresh trail knowledge from fellow hikers'
+		'Give and receive live updates from other hikers'
 	];
 	/** @type {Record<string,string>} */
 	const names = {
@@ -74,19 +74,15 @@
 			aria-roledescription="carousel"
 			aria-label="OpenTrail features"
 		>
-			<div class="welcome-map" aria-hidden="true">
-				<WaypointBadge kind={feature === 2 ? 'a' : 'c'} size={36} /><WaypointBadge
-					kind="w"
-					size={36}
-				/><WaypointBadge kind="t" size={36} />
-			</div>
+			<WelcomeIllustration {feature} />
 			<div class="feature-copy">
 				<h2 aria-live="polite">{features[feature]}</h2>
 				<div class="carousel-controls">
 					<button
 						class="icon-button"
 						aria-label="Previous feature"
-						onclick={() => (feature = (feature + 2) % 3)}><Icon name="back" /></button
+						disabled={feature === 0}
+						onclick={() => (feature = Math.max(0, feature - 1))}><Icon name="back" /></button
 					>
 					<div class="carousel-dots">
 						{#each features as _, i}<button
@@ -99,7 +95,9 @@
 					<button
 						class="icon-button"
 						aria-label="Next feature"
-						onclick={() => (feature = (feature + 1) % 3)}><Icon name="chevron" /></button
+						disabled={feature === features.length - 1}
+						onclick={() => (feature = Math.min(features.length - 1, feature + 1))}
+						><Icon name="chevron" /></button
 					>
 				</div>
 			</div>

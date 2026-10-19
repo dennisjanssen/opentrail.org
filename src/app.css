@@ -439,6 +439,10 @@ mark {
 .trail-switch span {
 	color: #4f6b61;
 }
+.trail-switch svg {
+	flex-shrink: 0;
+	color: #4f6b61;
+}
 .trail-switch strong {
 	font-size: 13px;
 }
