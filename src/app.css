@@ -349,13 +349,14 @@ mark {
 .trail-emblem {
 	height: 44px;
 	width: 44px;
-	border-radius: 12px;
-	background: #0e3b32;
-	color: white;
+	flex-shrink: 0;
 	display: grid;
 	place-items: center;
-	font-size: 13px;
-	font-weight: 800;
+}
+.trail-emblem img {
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
 }
 .onboarding footer {
 	margin-top: auto;
@@ -378,15 +379,15 @@ mark {
 .map-brand {
 	position: absolute;
 	top: max(12px, env(safe-area-inset-top));
-	left: 16px;
+	left: auto;
 	right: 16px;
 	z-index: 3;
 	background: white;
 	color: #0e3b32;
 	display: flex;
 	align-items: center;
-	padding: 8px 10px;
-	border-radius: 22px;
+	padding: 4px;
+	border-radius: 16px;
 	box-shadow: 0 4px 16px #0e3b321f;
 	gap: 12px;
 }
@@ -397,33 +398,9 @@ mark {
 	font-size: 22px;
 	font-weight: 800;
 }
-.brand-lockup strong {
-	display: none;
-}
 .brand-lockup img {
 	width: 36px;
 	height: 36px;
-}
-.trail-switch {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex: 1;
-	justify-content: space-between;
-	font-size: 12px;
-	background: #eef7f2;
-	border-radius: 14px;
-	padding: 10px;
-}
-.trail-switch span {
-	color: #4f6b61;
-}
-.trail-switch svg {
-	flex-shrink: 0;
-	color: #4f6b61;
-}
-.trail-switch strong {
-	font-size: 13px;
 }
 #map {
 	background: #eef8f2 url('/brand/topo-light.svg') center / cover;
@@ -1028,19 +1005,9 @@ mark {
 		height: 100dvh;
 	}
 	.map-brand {
-		left: 20px;
-		right: auto;
-		top: 20px;
-	}
-	.brand-lockup strong {
-		display: block;
-	}
-	.trail-switch {
-		font-size: 14px;
-		padding: 12px;
-	}
-	.trail-switch strong {
-		font-size: 14px;
+		left: auto;
+		right: 16px;
+		top: 12px;
 	}
 	.trail-nav {
 		display: flex;
@@ -1258,12 +1225,14 @@ mark {
 .detail-title {
 	display: flex;
 	align-items: center;
-	gap: 14px;
-	padding: 0 0 12px;
+	gap: 8px;
+	padding: 0;
+	min-width: 0;
+	flex: 1;
 }
 .detail-title h2 {
-	font-size: 22px;
-	line-height: 27px;
+	font-size: 16px;
+	line-height: 20px;
 	font-weight: 800;
 	margin: 0;
 }
@@ -1273,10 +1242,12 @@ mark {
 .detail-toolbar {
 	position: relative;
 	display: flex;
-	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
 	flex-shrink: 0;
 	min-height: 48px;
-	margin: 0 -8px 4px;
+	margin: 0 0 6px;
+	padding-top: 24px;
 	z-index: 2;
 }
 .detail-toolbar .sheet-handle {
@@ -1286,8 +1257,38 @@ mark {
 	transform: translateX(-50%);
 	margin: 0;
 }
+.sheet-drag-handle {
+	position: absolute;
+	top: -8px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 88px;
+	height: 32px;
+	touch-action: none;
+	cursor: grab;
+}
+.sheet-drag-handle:active {
+	cursor: grabbing;
+}
+.detail-toolbar .sheet-drag-handle .sheet-handle {
+	top: 8px;
+}
+.marker-sheet {
+	transition: transform 180ms ease-out;
+}
+.marker-sheet.sheet-dragging {
+	transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+	.marker-sheet {
+		transition: none;
+	}
+}
 .detail-toolbar .icon-button {
 	border-radius: 50%;
+}
+.detail-toolbar > .flex {
+	flex-shrink: 0;
 }
 .detail-toolbar .detail-more {
 	background: transparent;
@@ -1304,8 +1305,8 @@ mark {
 	overflow-wrap: anywhere;
 }
 .detail-meta {
-	font-size: 14px;
-	line-height: 20px;
+	font-size: 12px;
+	line-height: 16px;
 	color: var(--muted);
 }
 .detail-actions {
@@ -1317,17 +1318,30 @@ mark {
 	flex: 1;
 	gap: 10px;
 }
-.detail-actions label {
-	min-height: 48px;
-	width: 48px;
-	cursor: pointer;
+.detail-footer {
+	flex-shrink: 0;
+	gap: 8px;
+	padding: 12px 0 0;
+	margin-top: 8px;
+	border-top: 1px solid var(--line);
+}
+.detail-footer .btn {
+	min-width: 0;
+	padding: 8px;
+	font-size: 14px;
+	gap: 6px;
+}
+.detail-footer .btn svg {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
 }
 .detail-comments-heading {
 	font-size: 20px;
 	font-weight: 700;
-	margin: 8px 0 20px;
-	padding-top: 20px;
-	border-top: 8px solid var(--ground);
+	margin: 12px 0;
+	padding-top: 12px;
+	border-top: 1px solid var(--line);
 }
 .comment-signin {
 	display: flex;
@@ -1408,8 +1422,7 @@ mark {
 .setting-row,
 .type-grid button,
 .trail-choice,
-.comment-waypoint,
-.trail-switch {
+.comment-waypoint {
 	transition:
 		background-color 150ms ease,
 		color 150ms ease,
@@ -1441,9 +1454,6 @@ mark {
 	}
 	.trail-choice:hover {
 		background: var(--tint);
-	}
-	.trail-switch:hover {
-		background: #ddf4e6;
 	}
 	.text-link:hover,
 	.comment-signin:hover,
@@ -1783,4 +1793,169 @@ mark {
 .selected-title {
 	font-size: 15px;
 	line-height: 20px;
+}
+
+/* Keep both map panels usable on short phones, including the iPhone SE. */
+@media (max-width: 767px) and (max-height: 740px) {
+	.app-shell.profile-open:has(.marker-previews) {
+		--compact-profile-height: clamp(96px, 18dvh, 120px);
+	}
+	.app-shell.profile-open:has(.marker-previews) .elevation-profile-overlay {
+		flex: 0 0 var(--compact-profile-height);
+		height: var(--compact-profile-height);
+		padding-right: 52px;
+	}
+	.app-shell.profile-open .marker-previews {
+		bottom: calc(var(--compact-profile-height) + 8px) !important;
+	}
+	.app-shell.profile-open:has(.marker-previews) .profile-toggle {
+		bottom: calc(var(--compact-profile-height) - 52px) !important;
+		right: 8px;
+		z-index: 2 !important;
+	}
+	.app-shell.profile-open:has(.marker-previews) .maplibregl-ctrl-top-right {
+		left: 16px;
+		right: auto;
+		flex-direction: row;
+	}
+	.app-shell.profile-open:has(.marker-previews) .maplibregl-ctrl-group {
+		display: flex;
+	}
+	.app-shell.profile-open:has(.marker-previews) .maplibregl-ctrl-group button + button {
+		border-top: 0;
+		border-left: 1px solid var(--line);
+	}
+	.app-shell.profile-open:has(.marker-previews) .map-filter {
+		top: 80px;
+	}
+	.app-shell.profile-open:has(.marker-previews) .map-filter-panel {
+		max-height: calc(100dvh - 200px);
+	}
+	.app-shell.profile-open .selected-description {
+		-webkit-line-clamp: 1;
+	}
+}
+
+.trail-menu {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+.trail-menu-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	position: relative;
+	border-radius: 12px;
+}
+.trail-menu-toggle img {
+	width: 36px;
+	height: 36px;
+}
+.trail-menu-toggle > svg {
+	position: absolute;
+	right: -2px;
+	bottom: 0;
+	padding: 1px;
+	background: white;
+	border-radius: 50%;
+}
+.trail-menu-options {
+	display: none;
+	position: absolute;
+	right: -4px;
+	top: 56px;
+	width: min(300px, calc(100vw - 32px));
+	padding: 16px;
+	background: hsl(var(--b1));
+	color: var(--forest);
+	border: 1px solid var(--line);
+	border-radius: 18px;
+	box-shadow: 0 8px 28px #0e3b3226;
+}
+.trail-menu-options.expanded {
+	display: grid;
+	gap: 14px;
+}
+.map-brand:has(.trail-menu-options.expanded) {
+	z-index: 5;
+}
+.trail-menu-select {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+}
+.trail-menu-select > span,
+.trail-menu-direction legend {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--muted);
+	margin-bottom: 4px;
+}
+.trail-menu-select select {
+	min-height: 40px;
+	width: 100%;
+	border-radius: 10px;
+	padding: 6px 10px;
+	border: 1px solid var(--line);
+	background: var(--tint);
+	color: var(--forest);
+	font-size: 14px;
+}
+.trail-menu-select select:disabled {
+	opacity: 0.6;
+}
+.trail-menu-direction {
+	min-width: 0;
+}
+.trail-menu-direction .direction-options button {
+	padding-inline: 8px;
+}
+.trail-menu-help {
+	font-size: 12px;
+	color: var(--muted);
+	text-decoration: underline;
+}
+@media (min-width: 768px) {
+	.trail-menu {
+		flex-direction: row-reverse;
+		gap: 12px;
+	}
+	.trail-menu-options,
+	.trail-menu-options.expanded {
+		display: grid;
+		grid-template-columns: 200px 212px;
+		align-items: center;
+		gap: 12px;
+		position: static;
+		width: auto;
+		padding: 4px 0 4px 8px;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+		background: transparent;
+	}
+	.trail-menu-toggle {
+		cursor: default;
+	}
+	.trail-menu-toggle > svg {
+		display: none;
+	}
+	.trail-menu-help {
+		grid-column: 1 / -1;
+		position: absolute;
+		top: calc(100% + 12px);
+		right: 60px;
+		max-width: 300px;
+		padding: 8px 12px;
+		border-radius: 10px;
+		background: hsl(var(--b1));
+	}
+	.trail-menu-select > span,
+	.trail-menu-direction legend {
+		display: none;
+	}
 }

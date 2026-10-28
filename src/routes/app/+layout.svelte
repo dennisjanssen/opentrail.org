@@ -1,5 +1,6 @@
 <script>
 	import Icon from '$lib/Icon.svelte';
+	import TrailMenu from '$lib/TrailMenu.svelte';
 	import WaypointForm from '$lib/WaypointForm.svelte';
 	import WaypointBadge from '$lib/WaypointBadge.svelte';
 	import { waypointSVG, waypointKinds } from '$lib/waypoint-icons.js';
@@ -61,13 +62,22 @@
 	};
 
 	let showWaypointForm = false;
-	/** @type {Record<string,string>} */
-	const trailNames = {
-		PCT: 'Pacific Crest Trail',
-		AT: 'Appalachian Trail',
-		CDT: 'Continental Divide Trail',
-		test: 'Test trail'
-	};
+	let switchingTrail = false;
+	async function selectTrail(trail) {
+		if (!TRAILS[trail] || trail === $settings.trail || $settings.offline || switchingTrail) return;
+		switchingTrail = true;
+		try {
+			updateSelectedMarker(-1);
+			$detailId = -1;
+			$settings.trail = trail;
+			await getData();
+			await goto('/app', { replaceState: true, keepFocus: true, noScroll: true });
+		} catch (error) {
+			handleError(error, { modal: true, sentry: true });
+		} finally {
+			switchingTrail = false;
+		}
+	}
 	let fromBack = false;
 	let prevOC = 0;
 	$: oc = ($modal.isOpen ? 1 : 0) + ($detailId !== -1 ? 1 : 0);
@@ -955,7 +965,7 @@
 		});
 		const markerLayout = {
 			'symbol-z-order': 'source',
-			'icon-size': 0.5,
+			'icon-size': 0.4,
 			'icon-allow-overlap': true,
 			'text-field': ['get', 'title'],
 			'text-size': 12,
@@ -1090,7 +1100,6 @@
 	async function changeTrailOnMap() {
 		if (!map || !mapInitialized || mapRecreating) return;
 		$activeIcons = new Array(ICONS.length).fill(true);
-		lastToggleAllIcons = true;
 
 		await rebuildMapSources();
 		map.fitBounds(TRAILS[$settings.trail].bounds);
@@ -1238,7 +1247,7 @@
 				source: 'editMarker',
 				layout: {
 					'icon-image': ['concat', ['get', 'icon'], '-selected'],
-					'icon-size': 0.5,
+					'icon-size': 0.4,
 					'icon-allow-overlap': true,
 					'text-field': ['get', 'title'],
 					'text-size': 12,
@@ -1374,13 +1383,7 @@
 			onsubmit={createWaypoint}
 		/>{/if}
 	<header class="map-brand">
-		<a href="/" class="brand-lockup"
-			><img src="/brand/logomark.svg" width="40" height="40" alt="" /><strong>OpenTrail</strong></a
-		><a href="/app/settings" class="trail-switch"
-			><strong>{trailNames[$settings.trail] || 'Choose a trail'}</strong><span
-				>{$settings.reverseMiles ? 'Southbound' : 'Northbound'}</span
-			><Icon name="chevron-down" size={18} /></a
-		>
+		<TrailMenu ontrailchange={selectTrail} busy={switchingTrail || !mapInitialized} />
 	</header>
 	<!-- loading indicator -->
 	{#if $loadStatus.phase !== 'idle' && $page.url.pathname === '/app'}

@@ -1,8 +1,10 @@
 <script>
+	let photoInput;
 	import WaypointBadge from './WaypointBadge.svelte';
 	import { waypointKinds } from './waypoint-icons.js';
 	import Icon from './Icon.svelte';
 	import { dialogFocus } from './dialogFocus.js';
+	import { dragToClose } from './dragToClose.js';
 	import {
 		settings,
 		data,
@@ -187,25 +189,7 @@
 	class:modal-open={true}
 	onclick={(e) => e.target === e.currentTarget && ($detailId = -1)}
 >
-	<div class="relative max-w-[32rem] w-[91.666667%] mx-auto">
-		{#if onPrev}
-			<button
-				class="btn btn-circle btn-sm bg-base-100 border border-base-300 shadow-md text-base-content absolute z-10"
-				style="top: calc(50% - 16px); left: -16px;"
-				onclick={onPrev}
-			>
-				<Icon name="chevron-left" size={20} />
-			</button>
-		{/if}
-		{#if onNext}
-			<button
-				class="btn btn-circle btn-sm bg-base-100 border border-base-300 shadow-md text-base-content absolute z-10"
-				style="top: calc(50% - 16px); right: -16px;"
-				onclick={onNext}
-			>
-				<Icon name="chevron-right" size={20} />
-			</button>
-		{/if}
+	<div class="marker-sheet relative max-w-[32rem] w-[91.666667%] mx-auto">
 		<div
 			use:dialogFocus={() => ($detailId = -1)}
 			role="dialog"
@@ -215,7 +199,36 @@
 			class="modal-box rounded-lg p-4 h-[90vh] select-text overflow-x-hidden overflow-y-hidden flex flex-col w-full max-w-none"
 		>
 			<div class="detail-toolbar">
-				<div class="sheet-handle" aria-hidden="true"></div>
+				<button
+					type="button"
+					class="sheet-drag-handle"
+					aria-label="Close waypoint details by dragging down or activating this handle"
+					use:dragToClose={() => ($detailId = -1)}
+					><span class="sheet-handle" aria-hidden="true"></span></button
+				>
+				<div class="detail-title">
+					<WaypointBadge kind={prop.icon} size={32} />
+					<div class="detail-heading-copy">
+						<h2>{prop.title}</h2>
+						<p class="detail-meta">
+							{(waypointKinds[prop.icon] || waypointKinds.o).label.split(' / ')[0]} &middot; {#if imp}Mile
+								{displayMile.toFixed(
+									1
+								)}{#if userRecent}&nbsp;({mileSign}{mileDiff}){/if}{:else}{formatDist(
+									displayMile,
+									false,
+									1
+								)}{#if userRecent}&nbsp;({mileSign}{formatDist(mileDiff, false, 1)}){/if}{/if} &middot;
+							{#if imp}{prop.elev?.toLocaleString('en-US')} ft{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{elevDiffFt}'){/if}{:else}
+								{formatElev(
+									prop.elev != null ? ftToM(prop.elev) : null,
+									false
+								)}{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{Math.round(
+										ftToM(elevDiffFt)
+									)}m){/if}{/if}
+						</p>
+					</div>
+				</div>
 				<div class="flex justify-end">
 					<div class="dropdown dropdown-end">
 						<button type="button" aria-label="More waypoint options" class="icon-button detail-more"
@@ -261,12 +274,12 @@
 							<li>
 								<a>
 									<label for="upload-photo">Upload image</label>
-									<!-- <input type="file" name="photo" id="upload-photo" /> -->
 									<input
 										style="display:none;"
 										type="file"
 										accept="image/*"
 										id="upload-photo"
+										bind:this={photoInput}
 										onchange={uploadImage}
 									/>
 								</a>
@@ -297,29 +310,6 @@
 				class="detail-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
 				bind:this={scrollContainer}
 			>
-				<div class="detail-title">
-					<WaypointBadge kind={prop.icon} size={52} />
-					<div class="detail-heading-copy">
-						<h2>{prop.title}</h2>
-						<p class="detail-meta">
-							{(waypointKinds[prop.icon] || waypointKinds.o).label.split(' / ')[0]} &middot; {#if imp}Mile
-								{displayMile.toFixed(
-									1
-								)}{#if userRecent}&nbsp;({mileSign}{mileDiff}){/if}{:else}{formatDist(
-									displayMile,
-									false,
-									1
-								)}{#if userRecent}&nbsp;({mileSign}{formatDist(mileDiff, false, 1)}){/if}{/if} &middot;
-							{#if imp}{prop.elev?.toLocaleString('en-US')} ft{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{elevDiffFt}'){/if}{:else}
-								{formatElev(
-									prop.elev != null ? ftToM(prop.elev) : null,
-									false
-								)}{#if userRecent && elevDiffFt != null}&nbsp;({elevSign}{Math.round(
-										ftToM(elevDiffFt)
-									)}m){/if}{/if}
-						</p>
-					</div>
-				</div>
 				<p class="text-sm whitespace-pre-wrap break-words my-2">
 					{#each parseDescURL(prop.desc) as token}
 						{#if token.startsWith('http://') || token.startsWith('https://')}
@@ -374,19 +364,7 @@
 						{/each}
 					</swiper-container>
 				{/if}
-				<div class="detail-actions">
-					<button
-						class="btn btn-primary"
-						onclick={() => {
-							$skipHistorySync = true;
-							$centerOnMarkerId = dataIdx;
-							$detailId = -1;
-							goto('/app').finally(() => ($skipHistorySync = false));
-						}}><Icon name="map" /> View on map</button
-					><label class="icon-button" for="upload-photo" aria-label="Upload photo"
-						><Icon name="camera" /></label
-					>
-				</div>
+
 				<h3 class="detail-comments-heading">
 					Comments <span class="muted">&middot; {prop.comments.length}</span>
 				</h3>
@@ -459,8 +437,33 @@
 					</div>
 				{/each}
 			</div>
-			<div class="modal-action m-2">
-				<button class="btn" onclick={() => ($detailId = -1)}>Close</button>
+			<div class="detail-actions detail-footer" aria-label="Waypoint actions">
+				<button
+					class="icon-button"
+					aria-label="Previous marker"
+					disabled={!onPrev}
+					onclick={() => onPrev?.()}><Icon name="chevron-left" size={20} /></button
+				>
+				<button
+					class="btn btn-primary"
+					onclick={() => {
+						$skipHistorySync = true;
+						$centerOnMarkerId = dataIdx;
+						$detailId = -1;
+						goto('/app').finally(() => ($skipHistorySync = false));
+					}}><Icon name="map" /> View on map</button
+				><button
+					type="button"
+					class="icon-button"
+					aria-label="Upload photo"
+					onclick={() => photoInput?.click()}><Icon name="camera" /></button
+				>
+				<button
+					class="icon-button"
+					aria-label="Next marker"
+					disabled={!onNext}
+					onclick={() => onNext?.()}><Icon name="chevron-right" size={20} /></button
+				>
 			</div>
 		</div>
 	</div>
